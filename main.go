@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -9,13 +10,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hashicorp/terraform-config-inspect/tfconfig"
+	"github.com/northwood-labs/taco-config-inspect/tfconfig"
 	flag "github.com/spf13/pflag"
 )
 
-var showJSON = flag.Bool("json", false, "produce JSON-formatted output")
-var parseStack = flag.Bool("stack", false, "parse a Terraform stack")
-var parsePostInitConfiguration = flag.Bool("after-init", false, "parse a Terraform configuration after init")
+var (showJSON = flag.Bool("json", false, "produce JSON-formatted output")
+parseStack = flag.Bool("stack", false, "parse a Terraform stack")
+parsePostInitConfiguration = flag.Bool("after-init", false, "parse a Terraform configuration after init"))
 
 func main() {
 	flag.Parse()
@@ -32,12 +33,15 @@ func main() {
 			fmt.Fprintln(os.Stderr, "error: --after-init requires --json flag")
 			os.Exit(1)
 		}
+
 		dataDir := os.Getenv("TF_DATA_DIR")
 		if dataDir == "" {
 			dataDir = filepath.Join(dir, ".terraform")
 		}
+
 		cfg := tfconfig.LoadPostInit(dir, dataDir)
 		showConfigJSON(cfg)
+
 		if cfg.Diagnostics.HasErrors() {
 			os.Exit(1)
 		}
@@ -75,6 +79,7 @@ func showModuleJSON(module *tfconfig.Module) {
 		fmt.Fprintf(os.Stderr, "error producing JSON: %s\n", err)
 		os.Exit(2)
 	}
+
 	os.Stdout.Write(j)
 	os.Stdout.Write([]byte{'\n'})
 }
@@ -93,6 +98,7 @@ func showStackJSON(stack *tfconfig.Stack) {
 		fmt.Fprintf(os.Stderr, "error producing JSON: %s\n", err)
 		os.Exit(2)
 	}
+
 	os.Stdout.Write(j)
 	os.Stdout.Write([]byte{'\n'})
 }
@@ -103,6 +109,7 @@ func showConfigJSON(cfg *tfconfig.Configuration) {
 		fmt.Fprintf(os.Stderr, "error producing JSON: %s\n", err)
 		os.Exit(2)
 	}
+
 	os.Stdout.Write(j)
 	os.Stdout.Write([]byte{'\n'})
 }
@@ -112,52 +119,67 @@ func showStackMarkdown(stack *tfconfig.Stack) {
 
 	if len(stack.Variables) > 0 {
 		fmt.Printf("## Variables\n\n")
+
 		for name, variable := range stack.Variables {
 			fmt.Printf("- **%s** (%s)", name, variable.Type)
+
 			if variable.Description != "" {
 				fmt.Printf(": %s", variable.Description)
 			}
+
 			fmt.Printf("\n")
 		}
+
 		fmt.Printf("\n")
 	}
 
 	if len(stack.Outputs) > 0 {
 		fmt.Printf("## Outputs\n\n")
+
 		for name, output := range stack.Outputs {
 			fmt.Printf("- **%s**", name)
+
 			if output.Description != "" {
 				fmt.Printf(": %s", output.Description)
 			}
+
 			fmt.Printf("\n")
 		}
+
 		fmt.Printf("\n")
 	}
 
 	if len(stack.Components) > 0 {
 		fmt.Printf("## Components\n\n")
+
 		for name, component := range stack.Components {
 			fmt.Printf("- **%s** (source: `%s`)\n", name, component.Source)
 		}
+
 		fmt.Printf("\n")
 	}
 
 	if len(stack.RequiredProviders) > 0 {
 		fmt.Printf("## Required Providers\n\n")
+
 		for name, provider := range stack.RequiredProviders {
 			fmt.Printf("- **%s**", name)
+
 			if provider.Source != "" {
 				fmt.Printf(" (source: `%s`)", provider.Source)
 			}
+
 			if len(provider.VersionConstraints) > 0 {
 				fmt.Printf(" version: %s", provider.VersionConstraints[0])
 			}
+
 			fmt.Printf("\n")
 		}
 	}
 
 	if len(stack.Diagnostics) > 0 {
 		fmt.Printf("## Problems\n\n")
+
 		for _, diag := range stack.Diagnostics {
 			severity := ""
 			switch diag.Severity {
@@ -166,13 +188,17 @@ func showStackMarkdown(stack *tfconfig.Stack) {
 			case tfconfig.DiagWarning:
 				severity = "Warning: "
 			}
+
 			fmt.Printf("## %s%s", severity, diag.Summary)
+
 			if diag.Pos != nil {
 				fmt.Printf("\n\n(at `%s` line %d)", diag.Pos.Filename, diag.Pos.Line)
 			}
+
 			if diag.Detail != "" {
 				fmt.Printf("\n\n%s", diag.Detail)
 			}
+
 			fmt.Printf("\n\n")
 		}
 	}

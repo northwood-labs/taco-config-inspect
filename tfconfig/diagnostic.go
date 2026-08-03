@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -10,35 +11,41 @@ import (
 	"github.com/hashicorp/hcl/v2"
 )
 
-// Diagnostic describes a problem (error or warning) encountered during
-// configuration loading.
-type Diagnostic struct {
-	Severity DiagSeverity `json:"severity"`
-	Summary  string       `json:"summary"`
-	Detail   string       `json:"detail,omitempty"`
+type (
+	// Diagnostic describes a problem (error or warning) encountered during
+	// configuration loading.
+	Diagnostic struct {
+		Severity DiagSeverity `json:"severity"`
+		Summary  string       `json:"summary"`
+		Detail   string       `json:"detail,omitempty"`
 
-	// Pos is not populated for all diagnostics, but when populated should
-	// indicate a particular line that the described problem relates to.
-	Pos *SourcePos `json:"pos,omitempty"`
-}
+		// Pos is not populated for all diagnostics, but when populated should
+		// indicate a particular line that the described problem relates to.
+		Pos *SourcePos `json:"pos,omitempty"`
+	}
 
-// Diagnostics represents a sequence of diagnostics. This is the type that
-// should be returned from a function that might generate diagnostics.
-type Diagnostics []Diagnostic
+	// Diagnostics represents a sequence of diagnostics. This is the type that
+	// should be returned from a function that might generate diagnostics.
+	Diagnostics []Diagnostic
+
+	// DiagSeverity describes the severity of a Diagnostic.
+	DiagSeverity rune
+)
 
 // HasErrors returns true if there is at least one Diagnostic of severity
 // DiagError in the receiever.
 //
-// If a function returns a Diagnostics without errors then the result can
-// be assumed to be complete within the "best effort" constraints of this
-// library. If errors are present then the caller may wish to employ more
-// caution in relying on the result.
+// If a function returns a Diagnostics without errors then the result can be
+// assumed to be complete within the "best effort" constraints of this library.
+// If errors are present then the caller may wish to employ more caution in
+// relying on the result.
 func (diags Diagnostics) HasErrors() bool {
 	for _, diag := range diags {
 		if diag.Severity == DiagError {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -61,11 +68,9 @@ func (diags Diagnostics) Err() error {
 	if diags.HasErrors() {
 		return diags
 	}
+
 	return nil
 }
-
-// DiagSeverity describes the severity of a Diagnostic.
-type DiagSeverity rune
 
 // DiagError indicates a problem that prevented proper processing of the
 // configuration. In the precense of DiagError diagnostics the result is
@@ -92,23 +97,28 @@ func diagnosticsHCL(diags hcl.Diagnostics) Diagnostics {
 	if len(diags) == 0 {
 		return nil
 	}
+
 	ret := make(Diagnostics, len(diags))
+
 	for i, diag := range diags {
 		ret[i] = Diagnostic{
 			Summary: diag.Summary,
 			Detail:  diag.Detail,
 		}
+
 		switch diag.Severity {
 		case hcl.DiagError:
 			ret[i].Severity = DiagError
 		case hcl.DiagWarning:
 			ret[i].Severity = DiagWarning
 		}
+
 		if diag.Subject != nil {
 			pos := sourcePosHCL(*diag.Subject)
 			ret[i].Pos = &pos
 		}
 	}
+
 	return ret
 }
 
@@ -119,6 +129,7 @@ func diagnosticsError(err error) Diagnostics {
 
 	if posErr, ok := err.(*legacyhclparser.PosError); ok {
 		pos := sourcePosLegacyHCL(posErr.Pos, "")
+
 		return Diagnostics{
 			Diagnostic{
 				Severity: DiagError,

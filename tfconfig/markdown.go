@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -9,34 +10,6 @@ import (
 	"strings"
 	"text/template"
 )
-
-func RenderMarkdown(w io.Writer, module *Module) error {
-	tmpl := template.New("md")
-	tmpl.Funcs(template.FuncMap{
-		"tt": func(s string) string {
-			return "`" + s + "`"
-		},
-		"commas": func(s []string) string {
-			return strings.Join(s, ", ")
-		},
-		"json": func(v interface{}) (string, error) {
-			j, err := json.Marshal(v)
-			return string(j), err
-		},
-		"severity": func(s DiagSeverity) string {
-			switch s {
-			case DiagError:
-				return "Error: "
-			case DiagWarning:
-				return "Warning: "
-			default:
-				return ""
-			}
-		},
-	})
-	template.Must(tmpl.Parse(markdownTemplate))
-	return tmpl.Execute(w, module)
-}
 
 const markdownTemplate = `
 # Module {{ tt .Path }}
@@ -106,3 +79,34 @@ Provider Requirements:
 {{- end}}{{end}}
 
 `
+
+func RenderMarkdown(w io.Writer, module *Module) error {
+	tmpl := template.New("md")
+
+	tmpl.Funcs(template.FuncMap{
+		"tt": func(s string) string {
+			return "`" + s + "`"
+		},
+		"commas": func(s []string) string {
+			return strings.Join(s, ", ")
+		},
+		"json": func(v interface{}) (string, error) {
+			j, err := json.Marshal(v)
+			return string(j), err
+		},
+		"severity": func(s DiagSeverity) string {
+			switch s {
+			case DiagError:
+				return "Error: "
+			case DiagWarning:
+				return "Warning: "
+			default:
+				return ""
+			}
+		},
+	})
+
+	template.Must(tmpl.Parse(markdownTemplate))
+
+	return tmpl.Execute(w, module)
+}

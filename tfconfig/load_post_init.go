@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -15,39 +16,77 @@ import (
 	"github.com/hashicorp/hcl/v2/hclparse"
 )
 
-// Configuration is the top-level type representing a parsed Terraform
-// configuration after terraform init has been run.
-type Configuration struct {
-	// Path is the local filesystem directory where the configuration was loaded from.
-	Path string `json:"path"`
-	// Providers contains the resolved provider versions from .terraform.lock.hcl
-	Providers map[string]*LiveProviderInstance `json:"providers"`
-	// Modules contains the resolved module versions from .terraform/modules/modules.json
-	Modules map[string]*LiveModuleInstance `json:"modules"`
+type (
+	// Configuration is the top-level type representing a parsed Terraform
+	// configuration after terraform init has been run.
+	Configuration struct {
+		// Path is the local filesystem directory where the configuration was loaded
+		// from.
+		Path string `json:"path"`
 
-	// Diagnostics records any errors and warnings that were detected during
-	// loading, primarily for inclusion in serialized forms of the configuration.
-	Diagnostics Diagnostics `json:"diagnostics,omitempty"`
-}
+		// Providers contains the resolved provider versions from
+		// .terraform.lock.hcl
+		Providers map[string]*LiveProviderInstance `json:"providers"`
 
-// LiveProviderInstance represents a provider with its resolved version
-// as recorded in the terraform lock file.
-type LiveProviderInstance struct {
-	Source  string `json:"source"`
-	Version string `json:"version"`
-}
+		// Modules contains the resolved module versions from
+		// .terraform/modules/modules.json
+		Modules map[string]*LiveModuleInstance `json:"modules"`
 
-// LiveModuleInstance represents a module with its resolved version
-// as recorded in the terraform modules manifest.
-type LiveModuleInstance struct {
-	Source  string `json:"source"`
-	Version string `json:"version"`
-}
+		// Diagnostics records any errors and warnings that were detected during
+		// loading, primarily for inclusion in serialized forms of the
+		// configuration.
+		Diagnostics Diagnostics `json:"diagnostics,omitempty"`
+	}
+
+	// LiveProviderInstance represents a provider with its resolved version as
+	// recorded in the terraform lock file.
+	LiveProviderInstance struct {
+		Source  string `json:"source"`
+		Version string `json:"version"`
+	}
+
+	// LiveModuleInstance represents a module with its resolved version as
+	// recorded in the terraform modules manifest.
+	LiveModuleInstance struct {
+		Source  string `json:"source"`
+		Version string `json:"version"`
+	}
+
+	modulesRootSchema struct {
+		Modules *[]moduleRootSchema `json:"Modules"`
+	}
+
+	moduleRootSchema struct {
+		Key     string `json:"Key"`
+		Source  string `json:"Source"`
+		Version string `json:"Version"`
+	}
+)
+
+var (
+	lockFileSchema = &hcl.BodySchema{
+		Blocks: []hcl.BlockHeaderSchema{
+			{
+				Type:       "provider",
+				LabelNames: []string{"name"},
+			},
+		},
+	}
+
+	lockFileProviderBlockSchema = &hcl.BodySchema{
+		Attributes: []hcl.AttributeSchema{
+			{
+				Name: "version",
+			},
+		},
+	}
+)
 
 // LoadPostInit reads the terraform lock file and modules manifest from a
-// directory where terraform init has already been run.
-// workingDir is the directory containing .terraform.lock.hcl
-// dataDir is the .terraform directory (or TF_DATA_DIR) containing the modules manifest
+// directory where terraform init has already been run. workingDir is the
+// directory containing .terraform.lock.hcl dataDir is the .terraform directory
+// (or TF_DATA_DIR) containing the modules manifest
+//
 // See: https://developer.hashicorp.com/terraform/language/files/dependency-lock#lock-file-location
 // See: https://developer.hashicorp.com/terraform/cli/config/environment-variables#tf_data_dir
 func LoadPostInit(workingDir string, dataDir string) *Configuration {
@@ -71,16 +110,6 @@ func LoadPostInitFromFilesystem(workingFs FS, workingDir string, dataFs FS, data
 	return cfg
 }
 
-type modulesRootSchema struct {
-	Modules *[]moduleRootSchema `json:"Modules"`
-}
-
-type moduleRootSchema struct {
-	Key     string `json:"Key"`
-	Source  string `json:"Source"`
-	Version string `json:"Version"`
-}
-
 func loadTFDataDir(fs FS, dataDir string, cfg *Configuration) {
 	filename := filepath.Join(dataDir, "modules", "modules.json")
 
@@ -91,24 +120,29 @@ func loadTFDataDir(fs FS, dataDir string, cfg *Configuration) {
 			Summary:  "Module manifest file does not exist",
 			Detail:   fmt.Sprintf("Module manifest file %s does not exist", filename),
 		})
+
 		return
 	}
+
 	if err != nil {
 		cfg.Diagnostics = append(cfg.Diagnostics, Diagnostic{
 			Severity: DiagError,
 			Summary:  "Failed to read module manifest",
 			Detail:   fmt.Sprintf("Failed to read module manifest %s: %s", filename, err),
 		})
+
 		return
 	}
 
 	var cachedModules = modulesRootSchema{}
+
 	if err = json.Unmarshal(content, &cachedModules); err != nil {
 		cfg.Diagnostics = append(cfg.Diagnostics, Diagnostic{
 			Severity: DiagError,
 			Summary:  "Failed to parse module manifest",
 			Detail:   fmt.Sprintf("Failed to parse module manifest %s: %s", filename, err),
 		})
+
 		return
 	}
 
@@ -136,35 +170,21 @@ func loadTFLockFile(fs FS, workingDir string, cfg *Configuration) {
 			Summary:  "Lock file does not exist",
 			Detail:   fmt.Sprintf("Lock file %s does not exist", filename),
 		})
+
 		return
 	}
+
 	if err != nil {
 		cfg.Diagnostics = append(cfg.Diagnostics, Diagnostic{
 			Severity: DiagError,
 			Summary:  "Failed to read lock file",
 			Detail:   fmt.Sprintf("Failed to read lock file %s: %s", filename, err),
 		})
+
 		return
 	}
 
 	inspectTFLockFile(content, filename, cfg)
-}
-
-var lockFileSchema = &hcl.BodySchema{
-	Blocks: []hcl.BlockHeaderSchema{
-		{
-			Type:       "provider",
-			LabelNames: []string{"name"},
-		},
-	},
-}
-
-var lockFileProviderBlockSchema = &hcl.BodySchema{
-	Attributes: []hcl.AttributeSchema{
-		{
-			Name: "version",
-		},
-	},
 }
 
 func inspectTFLockFile(b []byte, filename string, cfg *Configuration) {
@@ -177,6 +197,7 @@ func inspectTFLockFile(b []byte, filename string, cfg *Configuration) {
 			Summary:  "Failed to parse lock file",
 			Detail:   fmt.Sprintf("Failed to parse lock file %s: %s", filename, fileDiags.Error()),
 		})
+
 		return
 	}
 
@@ -187,6 +208,7 @@ func inspectTFLockFile(b []byte, filename string, cfg *Configuration) {
 			Summary:  "Failed to parse lock file",
 			Detail:   fmt.Sprintf("Failed to parse lock file %s: %s", filename, contentDiags.Error()),
 		})
+
 		return
 	}
 
@@ -199,6 +221,7 @@ func inspectTFLockFile(b []byte, filename string, cfg *Configuration) {
 
 			if attr, defined := blockContent.Attributes["version"]; defined {
 				var version string
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
 				if valDiags.HasErrors() {
 					continue

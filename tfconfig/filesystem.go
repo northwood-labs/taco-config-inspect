@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -10,32 +11,41 @@ import (
 	"time"
 )
 
+type (
+
 // FS is an interface used by [LoadModuleFromFilesystem].
 //
-// Unfortunately this package implemented a draft version of the io/fs.FS
-// API before it was finalized and so this interface is not compatible with
-// the final design. To use this package with the final filesystem API design,
-// use [WrapFS] to wrap a standard filesystem implementation so that it
-// implements this interface.
-type FS interface {
+// Unfortunately this package implemented a draft version of the io/fs.FS API
+// before it was finalized and so this interface is not compatible with the
+// final design. To use this package with the final filesystem API design, use
+// [WrapFS] to wrap a standard filesystem implementation so that it implements
+// this interface.
+FS interface {
 	Open(name string) (File, error)
 	ReadFile(name string) ([]byte, error)
 	ReadDir(dirname string) ([]os.FileInfo, error)
 }
 
 // File represents an open file in [FS].
-type File interface {
+File interface {
 	Stat() (os.FileInfo, error)
 	Read([]byte) (int, error)
 	Close() error
 }
 
 // wrapFS is a rather regrettable adapter from the standard library filesystem
-// interfaces to the one we have designed in this package, since we adopted
-// a draft of that API before it was finalized and the final is incompatible.
-type wrapFS struct {
+// interfaces to the one we have designed in this package, since we adopted a
+// draft of that API before it was finalized and the final is incompatible.
+wrapFS struct {
 	wrapped fs.FS
 }
+
+wrapFileInfoDirEntry struct {
+	wrapped fs.DirEntry
+}
+
+osFs struct{}
+)
 
 // WrapFS wraps a standard library filesystem implementation so that it
 // implements this package's own (slightly-incompatible) interface [FS].
@@ -61,10 +71,6 @@ func (wfs wrapFS) ReadDir(dirname string) ([]os.FileInfo, error) {
 		}
 	}
 	return ret, err
-}
-
-type wrapFileInfoDirEntry struct {
-	wrapped fs.DirEntry
 }
 
 func (d wrapFileInfoDirEntry) IsDir() bool {
@@ -96,8 +102,6 @@ func (d wrapFileInfoDirEntry) Size() int64 {
 func (d wrapFileInfoDirEntry) Sys() any {
 	return nil
 }
-
-type osFs struct{}
 
 func (fs *osFs) Open(name string) (File, error) {
 	return os.Open(name)

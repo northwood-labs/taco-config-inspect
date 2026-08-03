@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -11,11 +12,11 @@ import (
 )
 
 func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
-	// This implementation is intentionally more quick-and-dirty than the
-	// main loader. In particular, it doesn't bother to keep careful track
-	// of multiple error messages because we always fall back on returning
-	// the main parser's error message if our fallback parsing produces
-	// an error, and thus the errors here are not seen by the end-caller.
+	// This implementation is intentionally more quick-and-dirty than the main
+	// loader. In particular, it doesn't bother to keep careful track of
+	// multiple error messages because we always fall back on returning the main
+	// parser's error message if our fallback parsing produces an error, and
+	// thus the errors here are not seen by the end-caller.
 	mod := NewModule(dir)
 
 	primaryPaths, diags := dirFiles(fs, dir)
@@ -55,7 +56,9 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 				RequiredProviders interface{} `hcl:"required_providers"`
 				Fields            []string    `hcl:",decodedFields"`
 			}
+
 			var block TerraformBlock
+
 			err = legacyhcl.DecodeObject(&block, item.Val)
 			if err != nil {
 				return nil, diagnosticsErrorf("terraform block: %s", err)
@@ -74,6 +77,7 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 
 		if vars := list.Filter("variable"); len(vars.Items) > 0 {
 			vars = vars.Children()
+
 			type VariableBlock struct {
 				Type        string `hcl:"type"`
 				Default     interface{}
@@ -91,6 +95,7 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 				name := item.Keys[0].Token.Value().(string)
 
 				var block VariableBlock
+
 				err := legacyhcl.DecodeObject(&block, item.Val)
 				if err != nil {
 					return nil, diagnosticsErrorf("invalid variable block at %s: %s", item.Pos(), err)
@@ -99,11 +104,13 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 				// Clean up legacy HCL decoding ambiguity by unwrapping list of maps
 				if ms, ok := block.Default.([]map[string]interface{}); ok {
 					def := make(map[string]interface{})
+
 					for _, m := range ms {
 						for k, v := range m {
 							def[k] = v
 						}
 					}
+
 					block.Default = def
 				}
 
@@ -115,16 +122,18 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 					Required:    block.Default == nil,
 					Pos:         sourcePosLegacyHCL(item.Pos(), filename),
 				}
+
 				if _, exists := mod.Variables[name]; exists {
 					return nil, diagnosticsErrorf("duplicate variable block for %q", name)
 				}
-				mod.Variables[name] = v
 
+				mod.Variables[name] = v
 			}
 		}
 
 		if outputs := list.Filter("output"); len(outputs.Items) > 0 {
 			outputs = outputs.Children()
+
 			type OutputBlock struct {
 				Description string
 				Sensitive   bool
@@ -140,6 +149,7 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 				name := item.Keys[0].Token.Value().(string)
 
 				var block OutputBlock
+
 				err := legacyhcl.DecodeObject(&block, item.Val)
 				if err != nil {
 					return nil, diagnosticsErrorf("invalid output block at %s: %s", item.Pos(), err)
@@ -151,9 +161,11 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 					Sensitive:   block.Sensitive,
 					Pos:         sourcePosLegacyHCL(item.Pos(), filename),
 				}
+
 				if _, exists := mod.Outputs[name]; exists {
 					return nil, diagnosticsErrorf("duplicate output block for %q", name)
 				}
+
 				mod.Outputs[name] = o
 			}
 		}
@@ -161,6 +173,7 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 		for _, blockType := range []string{"resource", "data"} {
 			if resources := list.Filter(blockType); len(resources.Items) > 0 {
 				resources = resources.Children()
+
 				type ResourceBlock struct {
 					Provider string
 				}
@@ -174,8 +187,10 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 
 					typeName := item.Keys[0].Token.Value().(string)
 					name := item.Keys[1].Token.Value().(string)
-					var mode ResourceMode
-					var rMap map[string]*Resource
+
+					var (mode ResourceMode
+					rMap map[string]*Resource)
+
 					switch blockType {
 					case "resource":
 						mode = ManagedResourceMode
@@ -198,6 +213,7 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 					} else {
 						providerName = block.Provider
 					}
+
 					if providerName == "" {
 						providerName = resourceTypeDefaultProviderName(typeName)
 					}
@@ -212,10 +228,13 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 						},
 						Pos: sourcePosLegacyHCL(item.Pos(), filename),
 					}
+
 					key := r.MapKey()
+
 					if _, exists := rMap[key]; exists {
 						return nil, diagnosticsErrorf("duplicate resource block for %q", key)
 					}
+
 					rMap[key] = r
 				}
 			}
@@ -224,6 +243,7 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 
 		if moduleCalls := list.Filter("module"); len(moduleCalls.Items) > 0 {
 			moduleCalls = moduleCalls.Children()
+
 			type ModuleBlock struct {
 				Source  string
 				Version string
@@ -250,18 +270,21 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 					Version: block.Version,
 					Pos:     sourcePosLegacyHCL(item.Pos(), filename),
 				}
+
 				// it's possible this module call is from an override file
 				if origMod, exists := mod.ModuleCalls[name]; exists {
 					if mc.Source == "" {
 						mc.Source = origMod.Source
 					}
 				}
+
 				mod.ModuleCalls[name] = mc
 			}
 		}
 
 		if providerConfigs := list.Filter("provider"); len(providerConfigs.Items) > 0 {
 			providerConfigs = providerConfigs.Children()
+
 			type ProviderBlock struct {
 				Version string
 			}
@@ -280,8 +303,10 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 				if err != nil {
 					return nil, diagnosticsErrorf("invalid provider block at %s: %s", item.Pos(), err)
 				}
+
 				// Even if there wasn't an explicit version required, we still
-				// need an entry in our map to signal the unversioned dependency.
+				// need an entry in our map to signal the unversioned
+				// dependency.
 				if _, exists := mod.RequiredProviders[name]; !exists {
 					mod.RequiredProviders[name] = &ProviderRequirement{}
 				}
@@ -297,20 +322,19 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 }
 
 // unwrapLegacyHCLObjectKeysFromJSON cleans up an edge case that can occur when
-// parsing JSON as input: if we're parsing JSON then directly nested
-// items will show up as additional "keys".
+// parsing JSON as input: if we're parsing JSON then directly nested items will
+// show up as additional "keys".
 //
-// For objects that expect a fixed number of keys, this breaks the
-// decoding process. This function unwraps the object into what it would've
-// looked like if it came directly from HCL by specifying the number of keys
-// you expect.
+// For objects that expect a fixed number of keys, this breaks the decoding
+// process. This function unwraps the object into what it would've looked like
+// if it came directly from HCL by specifying the number of keys you expect.
 //
 // Example:
 //
 // { "foo": { "baz": {} } }
 //
-// Will show up with Keys being: []string{"foo", "baz"}
-// when we really just want the first two. This function will fix this.
+// Will show up with Keys being: []string{"foo", "baz"} when we really just want
+// the first two. This function will fix this.
 func unwrapLegacyHCLObjectKeysFromJSON(item *legacyast.ObjectItem, depth int) {
 	if len(item.Keys) > depth && item.Keys[0].Token.JSON {
 		for len(item.Keys) > depth {

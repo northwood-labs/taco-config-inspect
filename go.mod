@@ -1,4 +1,6 @@
-module github.com/hashicorp/terraform-config-inspect
+module github.com/northwood-labs/taco-config-inspect
+
+go 1.26
 
 require (
 	github.com/go-test/deep v1.0.3
@@ -18,5 +20,3 @@ require (
 	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 )
-
-go 1.18

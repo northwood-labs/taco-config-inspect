@@ -1,10 +1,11 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 // Package tfconfig is a helper library that does careful, shallow parsing of
-// Terraform modules to provide access to high-level metadata while
-// remaining broadly compatible with configurations targeting various
-// different Terraform versions.
+// Terraform modules to provide access to high-level metadata while remaining
+// broadly compatible with configurations targeting various different Terraform
+// versions.
 //
 // This package focuses on describing top-level objects only, and in particular
 // does not attempt any sort of processing that would require access to plugins.
@@ -13,9 +14,9 @@
 // Core dependencies.
 //
 // This package only works at the level of single modules. A full configuration
-// is a tree of potentially several modules, some of which may be references
-// to remote packages. There are some basic helpers for traversing calls to
-// modules at relative local paths, however.
+// is a tree of potentially several modules, some of which may be references to
+// remote packages. There are some basic helpers for traversing calls to modules
+// at relative local paths, however.
 //
 // This package employs a "best effort" parsing strategy, producing as complete
 // a result as possible even though the input may not be entirely valid. The

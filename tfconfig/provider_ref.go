@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -11,34 +12,42 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// ProviderRef is a reference to a provider configuration within a module.
-// It represents the contents of a "provider" argument in a resource, or
-// a value in the "providers" map for a module call.
-type ProviderRef struct {
-	Name  string `json:"name"`
-	Alias string `json:"alias,omitempty"` // Empty if the default provider configuration is referenced
-}
+type (
+	// ProviderRef is a reference to a provider configuration within a module.
+	// It represents the contents of a "provider" argument in a resource, or
+	// a value in the "providers" map for a module call.
+	ProviderRef struct {
+		Name  string `json:"name"`
 
-type ProviderRequirement struct {
-	Source               string        `json:"source,omitempty"`
-	VersionConstraints   []string      `json:"version_constraints,omitempty"`
-	ConfigurationAliases []ProviderRef `json:"aliases,omitempty"`
-}
+		// Empty if the default provider configuration is referenced
+		Alias string `json:"alias,omitempty"`
+	}
+
+	ProviderRequirement struct {
+		Source               string        `json:"source,omitempty"`
+		VersionConstraints   []string      `json:"version_constraints,omitempty"`
+		ConfigurationAliases []ProviderRef `json:"aliases,omitempty"`
+	}
+)
 
 func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequirement, hcl.Diagnostics) {
 	attrs, diags := block.Body.JustAttributes()
 	reqs := make(map[string]*ProviderRequirement)
+
 	for name, attr := range attrs {
 		// Look for a legacy version in the attribute first
 		if expr, err := attr.Expr.Value(nil); err == nil && expr.Type().IsPrimitiveType() {
 			var version string
+
 			valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
 			diags = append(diags, valDiags...)
+
 			if !valDiags.HasErrors() {
 				reqs[name] = &ProviderRequirement{
 					VersionConstraints: []string{version},
 				}
 			}
+
 			continue
 		}
 
@@ -50,6 +59,7 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 				Detail:   "Required providers entries must be strings or objects.",
 				Subject:  attr.Expr.Range().Ptr(),
 			})
+
 			continue
 		}
 
@@ -69,12 +79,14 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 					Detail:   fmt.Sprintf("Invalid attribute value for provider requirement: %#v", key),
 					Subject:  kv.Key.Range().Ptr(),
 				})
+
 				continue
 			}
 
 			switch key.AsString() {
 			case "version":
 				version, valDiags := kv.Value.Value(nil)
+
 				if valDiags.HasErrors() || !version.Type().Equals(cty.String) {
 					diags = append(diags, &hcl.Diagnostic{
 						Severity: hcl.DiagError,
@@ -82,14 +94,17 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 						Detail:   "Unsuitable value: string required",
 						Subject:  attr.Expr.Range().Ptr(),
 					})
+
 					continue
 				}
+
 				if !version.IsNull() {
 					pr.VersionConstraints = append(pr.VersionConstraints, version.AsString())
 				}
 
 			case "source":
 				source, valDiags := kv.Value.Value(nil)
+
 				if valDiags.HasErrors() || !source.Type().Equals(cty.String) {
 					diags = append(diags, &hcl.Diagnostic{
 						Severity: hcl.DiagError,
@@ -97,6 +112,7 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 						Detail:   "Unsuitable value: string required",
 						Subject:  attr.Expr.Range().Ptr(),
 					})
+
 					continue
 				}
 
@@ -105,10 +121,12 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 				}
 			case "configuration_aliases":
 				aliases, valDiags := decodeConfigurationAliases(name, kv.Value)
+
 				if valDiags.HasErrors() {
 					diags = append(diags, valDiags...)
 					continue
 				}
+
 				pr.ConfigurationAliases = append(pr.ConfigurationAliases, aliases...)
 			}
 
@@ -120,8 +138,9 @@ func decodeRequiredProvidersBlock(block *hcl.Block) (map[string]*ProviderRequire
 }
 
 func decodeConfigurationAliases(localName string, value hcl.Expression) ([]ProviderRef, hcl.Diagnostics) {
-	aliases := make([]ProviderRef, 0)
 	var diags hcl.Diagnostics
+
+	aliases := make([]ProviderRef, 0)
 
 	exprs, listDiags := hcl.ExprList(value)
 	if listDiags.HasErrors() {
@@ -144,6 +163,7 @@ func decodeConfigurationAliases(localName string, value hcl.Expression) ([]Provi
 				Detail:   `Configuration aliases can only contain references to local provider configuration names in the format of provider.alias`,
 				Subject:  value.Range().Ptr(),
 			})
+
 			continue
 		}
 
@@ -154,6 +174,7 @@ func decodeConfigurationAliases(localName string, value hcl.Expression) ([]Provi
 				Detail:   fmt.Sprintf(`Configuration aliases must be prefixed with the provider name. Expected %q, but found %q.`, localName, ref.Name),
 				Subject:  value.Range().Ptr(),
 			})
+
 			continue
 		}
 

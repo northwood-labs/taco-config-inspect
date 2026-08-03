@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -11,6 +12,7 @@ import (
 
 func assertEqual[T comparable](t *testing.T, got, want T, msg string) {
 	t.Helper()
+
 	if got != want {
 		t.Errorf("%s: got %v, want %v", msg, got, want)
 	}
@@ -21,7 +23,6 @@ func TestLoadPostInit(t *testing.T) {
 	dataDir := filepath.Join(path, ".terraform")
 
 	cfg := LoadPostInit(path, dataDir)
-
 	if cfg == nil {
 		t.Fatal("result is nil")
 	}
@@ -38,10 +39,12 @@ func TestLoadPostInit(t *testing.T) {
 
 	for name, want := range expectedProviders {
 		got, ok := cfg.Providers[name]
+
 		if !ok {
 			t.Errorf("provider %q: not found", name)
 			continue
 		}
+
 		assertEqual(t, got.Source, want.Source, "provider "+name+" source")
 		assertEqual(t, got.Version, want.Version, "provider "+name+" version")
 	}
@@ -56,10 +59,12 @@ func TestLoadPostInit(t *testing.T) {
 
 	for name, want := range expectedModules {
 		got, ok := cfg.Modules[name]
+
 		if !ok {
 			t.Errorf("module %q: not found", name)
 			continue
 		}
+
 		assertEqual(t, got.Source, want.Source, "module "+name+" source")
 		assertEqual(t, got.Version, want.Version, "module "+name+" version")
 	}
@@ -75,7 +80,6 @@ func TestLoadPostInit_Empty(t *testing.T) {
 	dataDir := filepath.Join(path, ".terraform")
 
 	cfg := LoadPostInit(path, dataDir)
-
 	if cfg == nil {
 		t.Fatal("result is nil")
 	}
@@ -90,10 +94,9 @@ func TestLoadPostInit_Empty(t *testing.T) {
 func TestLoadPostInitFromFilesystem(t *testing.T) {
 	path := filepath.Join("testdata-post-init", "basic")
 	dataDir := filepath.Join(path, ".terraform")
-
 	fs := os.DirFS(".")
-	cfg := LoadPostInitFromFilesystem(WrapFS(fs), path, WrapFS(fs), dataDir)
 
+	cfg := LoadPostInitFromFilesystem(WrapFS(fs), path, WrapFS(fs), dataDir)
 	if cfg == nil {
 		t.Fatal("result is nil")
 	}

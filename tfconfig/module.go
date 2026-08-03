@@ -1,36 +1,39 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
 
-// Module is the top-level type representing a parsed and processed Terraform
-// module.
-type Module struct {
-	// Path is the local filesystem directory where the module was loaded from.
-	Path string `json:"path"`
+type (
+	// Module is the top-level type representing a parsed and processed
+	// Terraform module.
+	Module struct {
+		// Path is the local filesystem directory where the module was loaded
+		// from.
+		Path string `json:"path"`
 
-	Variables map[string]*Variable `json:"variables"`
-	Outputs   map[string]*Output   `json:"outputs"`
+		Variables map[string]*Variable `json:"variables"`
+		Outputs   map[string]*Output   `json:"outputs"`
+		RequiredCore      []string                        `json:"required_core,omitempty"`
+		RequiredProviders map[string]*ProviderRequirement `json:"required_providers"`
+		ProviderConfigs  map[string]*ProviderConfig `json:"provider_configs,omitempty"`
+		ManagedResources map[string]*Resource       `json:"managed_resources"`
+		DataResources    map[string]*Resource       `json:"data_resources"`
+		ModuleCalls      map[string]*ModuleCall     `json:"module_calls"`
 
-	RequiredCore      []string                        `json:"required_core,omitempty"`
-	RequiredProviders map[string]*ProviderRequirement `json:"required_providers"`
+		// Diagnostics records any errors and warnings that were detected during
+		// loading, primarily for inclusion in serialized forms of the module
+		// since this slice is also returned as a second argument from
+		// LoadModule.
+		Diagnostics Diagnostics `json:"diagnostics,omitempty"`
+	}
 
-	ProviderConfigs  map[string]*ProviderConfig `json:"provider_configs,omitempty"`
-	ManagedResources map[string]*Resource       `json:"managed_resources"`
-	DataResources    map[string]*Resource       `json:"data_resources"`
-	ModuleCalls      map[string]*ModuleCall     `json:"module_calls"`
-
-	// Diagnostics records any errors and warnings that were detected during
-	// loading, primarily for inclusion in serialized forms of the module
-	// since this slice is also returned as a second argument from LoadModule.
-	Diagnostics Diagnostics `json:"diagnostics,omitempty"`
-}
-
-// ProviderConfig represents a provider block in the configuration
-type ProviderConfig struct {
-	Name  string `json:"name"`
-	Alias string `json:"alias,omitempty"`
-}
+	// ProviderConfig represents a provider block in the configuration
+	ProviderConfig struct {
+		Name  string `json:"name"`
+		Alias string `json:"alias,omitempty"`
+	}
+)
 
 // NewModule creates new Module representing Terraform module at the given path
 func NewModule(path string) *Module {

@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -24,6 +25,7 @@ func testLoadHelper(t *testing.T, fixturesDir string, loadFunc func(string) inte
 		if !info.IsDir() {
 			continue
 		}
+
 		t.Run(info.Name(), func(t *testing.T) {
 			name := info.Name()
 			path := filepath.Join(fixturesDir, name)
@@ -32,6 +34,7 @@ func testLoadHelper(t *testing.T, fixturesDir string, loadFunc func(string) inte
 			if err != nil {
 				t.Fatalf("failed to read result file: %s", err)
 			}
+
 			var want map[string]interface{}
 			err = json.Unmarshal(wantSrc, &want)
 			if err != nil {
@@ -47,6 +50,7 @@ func testLoadHelper(t *testing.T, fixturesDir string, loadFunc func(string) inte
 			if err != nil {
 				t.Fatalf("result is not JSON-able: %s", err)
 			}
+
 			var got map[string]interface{}
 			err = json.Unmarshal(gotSrc, &got)
 			if err != nil {
@@ -63,6 +67,7 @@ func testLoadHelper(t *testing.T, fixturesDir string, loadFunc func(string) inte
 func TestLoadModule(t *testing.T) {
 	testLoadHelper(t, "testdata", func(path string) interface{} {
 		module, _ := LoadModule(path)
+
 		return module
 	})
 }
@@ -71,6 +76,7 @@ func TestLoadModuleFromFilesystem(t *testing.T) {
 	testLoadHelper(t, "testdata", func(path string) interface{} {
 		fs := os.DirFS(".")
 		module, _ := LoadModuleFromFilesystem(WrapFS(fs), path)
+
 		return module
 	})
 }
@@ -78,6 +84,7 @@ func TestLoadModuleFromFilesystem(t *testing.T) {
 func TestLoadStack(t *testing.T) {
 	testLoadHelper(t, "testdata-stack", func(path string) interface{} {
 		stack, _ := LoadStack(path)
+
 		return stack
 	})
 }
@@ -107,9 +114,11 @@ func TestLoadModuleDynamicSource(t *testing.T) {
 			t.Errorf("module call %q not found", name)
 			continue
 		}
+
 		if mc.Source != want.source {
 			t.Errorf("module %q source = %q, want %q", name, mc.Source, want.source)
 		}
+
 		if mc.Version != want.version {
 			t.Errorf("module %q version = %q, want %q", name, mc.Version, want.version)
 		}

@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -17,15 +18,15 @@ func LoadModule(dir string) (*Module, Diagnostics) {
 	return LoadModuleFromFilesystem(NewOsFs(), dir)
 }
 
-// LoadModuleFromFilesystem reads the directory at the given path
-// in the given FS and attempts to interpret it as a Terraform module
+// LoadModuleFromFilesystem reads the directory at the given path in the given
+// FS and attempts to interpret it as a Terraform module
 func LoadModuleFromFilesystem(fs FS, dir string) (*Module, Diagnostics) {
 	// For broad compatibility here we actually have two separate loader
 	// codepaths. The main one uses the new HCL parser and API and is intended
-	// for configurations from Terraform 0.12 onwards (though will work for
-	// many older configurations too), but we'll also fall back on one that
-	// uses the _old_ HCL implementation so we can deal with some edge-cases
-	// that are not valid in new HCL.
+	// for configurations from Terraform 0.12 onwards (though will work for many
+	// older configurations too), but we'll also fall back on one that uses the
+	// _old_ HCL implementation so we can deal with some edge-cases that are not
+	// valid in new HCL.
 
 	module, diags := loadModule(fs, dir)
 	if diags.HasErrors() {
@@ -38,37 +39,38 @@ func LoadModuleFromFilesystem(fs FS, dir string) (*Module, Diagnostics) {
 	}
 
 	module.init(diags)
+
 	return module, diags
 }
 
 // IsModuleDir checks if the given path contains terraform configuration files.
-// This allows the caller to decide how to handle directories that do not have tf files.
+// This allows the caller to decide how to handle directories that do not have
+// tf files.
 func IsModuleDir(dir string) bool {
 	return IsModuleDirOnFilesystem(NewOsFs(), dir)
 }
 
 // IsModuleDirOnFilesystem checks if the given path in the given FS contains
-// Terraform configuration files. This allows the caller to decide
-// how to handle directories that do not have tf files.
+// Terraform configuration files. This allows the caller to decide how to handle
+// directories that do not have tf files.
 func IsModuleDirOnFilesystem(fs FS, dir string) bool {
 	primaryPaths, _ := dirFiles(fs, dir)
-	if len(primaryPaths) == 0 {
-		return false
-	}
-	return true
+
+	return len(primaryPaths) != 0
 }
 
 func (m *Module) init(diags Diagnostics) {
-	// Fill in any additional provider requirements that are implied by
-	// resource configurations, to avoid the caller from needing to apply
-	// this logic itself. Implied requirements don't have version constraints,
-	// but we'll make sure the requirement value is still non-nil in this
-	// case so callers can easily recognize it.
+	// Fill in any additional provider requirements that are implied by resource
+	// configurations, to avoid the caller from needing to apply this logic
+	// itself. Implied requirements don't have version constraints, but we'll
+	// make sure the requirement value is still non-nil in this case so callers
+	// can easily recognize it.
 	for _, r := range m.ManagedResources {
 		if _, exists := m.RequiredProviders[r.Provider.Name]; !exists {
 			m.RequiredProviders[r.Provider.Name] = &ProviderRequirement{}
 		}
 	}
+
 	for _, r := range m.DataResources {
 		if _, exists := m.RequiredProviders[r.Provider.Name]; !exists {
 			m.RequiredProviders[r.Provider.Name] = &ProviderRequirement{}
@@ -83,12 +85,14 @@ func (m *Module) init(diags Diagnostics) {
 
 func dirFiles(fs FS, dir string) (primary []string, diags hcl.Diagnostics) {
 	infos, err := fs.ReadDir(dir)
+
 	if err != nil {
 		diags = append(diags, &hcl.Diagnostic{
 			Severity: hcl.DiagError,
 			Summary:  "Failed to read directory",
 			Detail:   fmt.Sprintf("Directory %s does not exist or cannot be read.", dir),
 		})
+
 		return
 	}
 
@@ -101,6 +105,7 @@ func dirFiles(fs FS, dir string) (primary []string, diags hcl.Diagnostics) {
 
 		name := info.Name()
 		ext := fileExt(name)
+
 		if ext == "" || isIgnoredFile(name) {
 			continue
 		}
@@ -116,17 +121,24 @@ func dirFiles(fs FS, dir string) (primary []string, diags hcl.Diagnostics) {
 		}
 	}
 
-	// We are assuming that any _override files will be logically named,
-	// and processing the files in alphabetical order. Primaries first, then overrides.
+	// We are assuming that any _override files will be logically named, and
+	// processing the files in alphabetical order. Primaries first, then
+	// overrides.
 	primary = append(primary, override...)
 
 	return
 }
 
-// fileExt returns the Terraform configuration extension of the given
-// path, or a blank string if it is not a recognized extension.
+// fileExt returns the Terraform configuration extension of the given path, or a
+// blank string if it is not a recognized extension.
+//
+// OpenTofu is favored if available, else fallback to Terraform.
 func fileExt(path string) string {
-	if strings.HasSuffix(path, ".tf") {
+	if strings.HasSuffix(path, ".tofu") {
+		return ".tofu"
+	} else if strings.HasSuffix(path, ".tofu.json") {
+		return ".tofu.json"
+	} else if strings.HasSuffix(path, ".tf") {
 		return ".tf"
 	} else if strings.HasSuffix(path, ".tf.json") {
 		return ".tf.json"
@@ -140,7 +152,7 @@ func fileExt(path string) string {
 }
 
 // isIgnoredFile returns true if the given filename (which must not have a
-// directory path ahead of it) should be ignored as e.g. an editor swap file.
+// directory path ahead of it) should be ignored as e.g., an editor swap file.
 func isIgnoredFile(name string) bool {
 	return strings.HasPrefix(name, ".") || // Unix-like hidden files
 		strings.HasSuffix(name, "~") || // vim

@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -11,7 +12,6 @@ type Stack struct {
 
 	Variables map[string]*Variable `json:"variables"`
 	Outputs   map[string]*Output   `json:"outputs"`
-
 	RequiredProviders map[string]*ProviderRequirement `json:"required_providers"`
 	Components        map[string]*Component           `json:"components"`
 

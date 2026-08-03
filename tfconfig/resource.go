@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -9,16 +10,27 @@ import (
 	"strings"
 )
 
-// Resource represents a single "resource" or "data" block within a module.
-type Resource struct {
-	Mode ResourceMode `json:"mode"`
-	Type string       `json:"type"`
-	Name string       `json:"name"`
+const (InvalidResourceMode ResourceMode = 0
+ManagedResourceMode ResourceMode = 'M'
+DataResourceMode ResourceMode = 'D')
 
-	Provider ProviderRef `json:"provider"`
+type (
+	// Resource represents a single "resource" or "data" block within a module.
+	Resource struct {
+		Mode ResourceMode `json:"mode"`
+		Type string       `json:"type"`
+		Name string       `json:"name"`
 
-	Pos SourcePos `json:"pos"`
-}
+		Provider ProviderRef `json:"provider"`
+
+		Pos SourcePos `json:"pos"`
+	}
+
+	// ResourceMode represents the "mode" of a resource, which is used to
+	// distinguish between managed resources ("resource" blocks in config) and
+	// data resources ("data" blocks in config).
+	ResourceMode rune
+)
 
 // MapKey returns a string that can be used to uniquely identify the receiver
 // in a map[string]*Resource.
@@ -33,15 +45,6 @@ func (r *Resource) MapKey() string {
 		return fmt.Sprintf("[invalid_mode!].%s.%s", r.Type, r.Name)
 	}
 }
-
-// ResourceMode represents the "mode" of a resource, which is used to
-// distinguish between managed resources ("resource" blocks in config) and
-// data resources ("data" blocks in config).
-type ResourceMode rune
-
-const InvalidResourceMode ResourceMode = 0
-const ManagedResourceMode ResourceMode = 'M'
-const DataResourceMode ResourceMode = 'D'
 
 func (m ResourceMode) String() string {
 	switch m {
@@ -63,5 +66,6 @@ func resourceTypeDefaultProviderName(typeName string) string {
 	if underPos := strings.IndexByte(typeName, '_'); underPos != -1 {
 		return typeName[:underPos]
 	}
+
 	return typeName
 }

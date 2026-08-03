@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -14,6 +15,7 @@ import (
 
 func TestRenderMarkdown(t *testing.T) {
 	fixturesDir := "testdata"
+
 	testDirs, err := ioutil.ReadDir(fixturesDir)
 	if err != nil {
 		t.Fatal(err)
@@ -27,8 +29,8 @@ func TestRenderMarkdown(t *testing.T) {
 		t.Run(info.Name(), func(t *testing.T) {
 			name := info.Name()
 			path := filepath.Join(fixturesDir, name)
-
 			fullPath := filepath.Join(path, name+".out.md")
+
 			expected, err := ioutil.ReadFile(fullPath)
 			if err != nil {
 				t.Skipf("%q not found, skipping test", fullPath)

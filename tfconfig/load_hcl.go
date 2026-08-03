@@ -1,4 +1,5 @@
 // Copyright IBM Corp. 2018, 2025
+// Copyright 2026 Northwood Labs, LLC <licensing@northwood-labs.com>
 // SPDX-License-Identifier: MPL-2.0
 
 package tfconfig
@@ -19,12 +20,11 @@ import (
 func loadModule(fs FS, dir string) (*Module, Diagnostics) {
 	mod := NewModule(dir)
 	primaryPaths, diags := dirFiles(fs, dir)
-
 	parser := hclparse.NewParser()
 
 	for _, filename := range primaryPaths {
-		var file *hcl.File
-		var fileDiags hcl.Diagnostics
+		var (file *hcl.File
+		fileDiags hcl.Diagnostics)
 
 		b, err := fs.ReadFile(filename)
 		if err != nil {
@@ -35,12 +35,15 @@ func loadModule(fs FS, dir string) (*Module, Diagnostics) {
 			})
 			continue
 		}
+
 		if strings.HasSuffix(filename, ".json") {
 			file, fileDiags = parser.ParseJSON(b, filename)
 		} else {
 			file, fileDiags = parser.ParseHCL(b, filename)
 		}
+
 		diags = append(diags, fileDiags...)
+
 		if file == nil {
 			continue
 		}
@@ -59,8 +62,8 @@ func LoadStack(dir string) (*Stack, Diagnostics) {
 
 	primaryPaths, diags := dirFiles(fs, dir)
 	for _, filename := range primaryPaths {
-		var file *hcl.File
-		var fileDiags hcl.Diagnostics
+		var (file *hcl.File
+		fileDiags hcl.Diagnostics)
 
 		b, err := fs.ReadFile(filename)
 		if err != nil {
@@ -69,8 +72,10 @@ func LoadStack(dir string) (*Stack, Diagnostics) {
 				Summary:  "Failed to read file",
 				Detail:   fmt.Sprintf("The configuration file %q could not be read.", filename),
 			})
+
 			continue
 		}
+
 		file, fileDiags = parser.ParseHCL(b, filename)
 
 		diags = append(diags, fileDiags...)
@@ -87,17 +92,17 @@ func LoadStack(dir string) (*Stack, Diagnostics) {
 
 func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 	var diags hcl.Diagnostics
+
 	content, _, contentDiags := file.Body.PartialContent(stackSchema)
 	diags = append(diags, contentDiags...)
 
 	for _, block := range content.Blocks {
 		switch block.Type {
-
 		case "variable":
 			content, _, contentDiags := block.Body.PartialContent(variableSchema)
 			diags = append(diags, contentDiags...)
-
 			name := block.Labels[0]
+
 			v := &Variable{
 				Name: name,
 				Pos:  sourcePosHCL(block.DefRange),
@@ -106,28 +111,31 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 			stack.Variables[name] = v
 
 			if attr, defined := content.Attributes["type"]; defined {
-				var typeExpr string
-				var typeExprAsStr string
-				// Older versions of HCL expected the type
-				// to be a string containing a keyword, so we'll need to
-				// handle that as a special case first for backward compatibility.
+				var (typeExpr string
+				typeExprAsStr string)
+
+				// Older versions of HCL expected the type to be a string
+				// containing a keyword, so we'll need to handle that as a
+				// special case first for backward compatibility.
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &typeExprAsStr)
 				if !valDiags.HasErrors() {
 					typeExpr = typeExprAsStr
 				} else {
-					// Since HCL may evolve its type expression syntax in
-					// future versions, we don't want to be overly-strict in how
-					// we handle it here, and so we'll instead just take the raw
+					// Since HCL may evolve its type expression syntax in future
+					// versions, we don't want to be overly-strict in how we
+					// handle it here, and so we'll instead just take the raw
 					// source provided by the user, using the source location
 					// information in the expression object
 					rng := attr.Expr.Range()
 					typeExpr = string(rng.SliceBytes(file.Bytes))
 				}
+
 				v.Type = typeExpr
 			}
 
 			if attr, defined := content.Attributes["description"]; defined {
 				var description string
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &description)
 				diags = append(diags, valDiags...)
 				v.Description = description
@@ -136,6 +144,7 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 			if attr, defined := content.Attributes["default"]; defined {
 				val, valDiags := attr.Expr.Value(nil)
 				diags = append(diags, valDiags...)
+
 				if val.IsWhollyKnown() { // should only be false if there are errors in the input
 					valJSON, err := ctyjson.Marshal(val, val.Type())
 					if err != nil {
@@ -143,7 +152,9 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 						// values have a JSON mapping.
 						panic(fmt.Errorf("failed to serialize default value as JSON: %s", err))
 					}
+
 					var def interface{}
+
 					err = json.Unmarshal(valJSON, &def)
 					if err != nil {
 						// Again should never happen, because valJSON is
@@ -157,7 +168,6 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 			}
 
 		case "output":
-
 			content, _, contentDiags := block.Body.PartialContent(outputSchema)
 			diags = append(diags, contentDiags...)
 
@@ -171,17 +181,19 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 
 			if attr, defined := content.Attributes["description"]; defined {
 				var description string
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &description)
 				diags = append(diags, valDiags...)
 				o.Description = description
 			}
 
 			if attr, defined := content.Attributes["type"]; defined {
-				var typeExpr string
-				var typeExprAsStr string
-				// Older versions of HCL expected the type
-				// to be a string containing a keyword, so we'll need to
-				// handle that as a special case first for backward compatibility.
+				var (typeExpr string
+				typeExprAsStr string)
+
+				// Older versions of HCL expected the type to be a string
+				// containing a keyword, so we'll need to handle that as a
+				// special case first for backward compatibility.
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &typeExprAsStr)
 				if !valDiags.HasErrors() {
 					typeExpr = typeExprAsStr
@@ -194,11 +206,11 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 					rng := attr.Expr.Range()
 					typeExpr = string(rng.SliceBytes(file.Bytes))
 				}
+
 				o.Type = typeExpr
 			}
 
 		case "component":
-
 			content, _, contentDiags := block.Body.PartialContent(componentSchema)
 			diags = append(diags, contentDiags...)
 
@@ -220,15 +232,18 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 		case "required_providers":
 			reqs, reqsDiags := decodeRequiredProvidersBlock(block)
 			diags = append(diags, reqsDiags...)
+
 			for name, req := range reqs {
 				if _, exists := stack.RequiredProviders[name]; !exists {
-					// For stacks, we only care about the source, not version constraints
+					// For stacks, we only care about the source, not version
+					// constraints
 					stack.RequiredProviders[name] = &ProviderRequirement{
 						Source: req.Source,
 					}
 				} else {
 					if req.Source != "" {
 						source := stack.RequiredProviders[name].Source
+
 						if source != "" && source != req.Source {
 							diags = append(diags, &hcl.Diagnostic{
 								Severity: hcl.DiagError,
@@ -251,6 +266,7 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 					Detail:   "Provider blocks in stacks must have both a provider name and configuration name",
 					Subject:  &block.DefRange,
 				})
+
 				continue
 			}
 
@@ -260,8 +276,9 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 			providerName := block.Labels[0]
 			_ = block.Labels[1] // configName - not used for metadata extraction
 
-			// For stack providers, we primarily care about tracking that they exist
-			// The actual provider configuration is handled differently in stacks
+			// For stack providers, we primarily care about tracking that they
+			// exist The actual provider configuration is handled differently in
+			// stacks
 			if _, exists := stack.RequiredProviders[providerName]; !exists {
 				stack.RequiredProviders[providerName] = &ProviderRequirement{}
 			}
@@ -276,24 +293,26 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 
 // LoadModuleFromFile reads given file, interprets it and stores in given Module
 // This is useful for any caller which does tokenization/parsing on its own
-// e.g. because it will reuse these parsed files later for more detailed
+// e.g., because it will reuse these parsed files later for more detailed
 // interpretation.
 func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 	var diags hcl.Diagnostics
+
 	content, _, contentDiags := file.Body.PartialContent(rootSchema)
 	diags = append(diags, contentDiags...)
 
 	for _, block := range content.Blocks {
 		switch block.Type {
-
 		case "terraform":
 			content, _, contentDiags := block.Body.PartialContent(terraformBlockSchema)
 			diags = append(diags, contentDiags...)
 
 			if attr, defined := content.Attributes["required_version"]; defined {
 				var version string
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
 				diags = append(diags, valDiags...)
+
 				if !valDiags.HasErrors() {
 					mod.RequiredCore = append(mod.RequiredCore, version)
 				}
@@ -304,12 +323,14 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 				case "required_providers":
 					reqs, reqsDiags := decodeRequiredProvidersBlock(innerBlock)
 					diags = append(diags, reqsDiags...)
+
 					for name, req := range reqs {
 						if _, exists := mod.RequiredProviders[name]; !exists {
 							mod.RequiredProviders[name] = req
 						} else {
 							if req.Source != "" {
 								source := mod.RequiredProviders[name].Source
+
 								if source != "" && source != req.Source {
 									diags = append(diags, &hcl.Diagnostic{
 										Severity: hcl.DiagError,
@@ -331,8 +352,8 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 		case "variable":
 			content, _, contentDiags := block.Body.PartialContent(variableSchema)
 			diags = append(diags, contentDiags...)
-
 			name := block.Labels[0]
+
 			v := &Variable{
 				Name: name,
 				Pos:  sourcePosHCL(block.DefRange),
@@ -343,18 +364,18 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 			if attr, defined := content.Attributes["type"]; defined {
 				// We handle this particular attribute in a somewhat-tricky way:
 				// since Terraform may evolve its type expression syntax in
-				// future versions, we don't want to be overly-strict in how
-				// we handle it here, and so we'll instead just take the raw
-				// source provided by the user, using the source location
-				// information in the expression object.
+				// future versions, we don't want to be overly-strict in how we
+				// handle it here, and so we'll instead just take the raw source
+				// provided by the user, using the source location information
+				// in the expression object.
 				//
-				// However, older versions of Terraform expected the type
-				// to be a string containing a keyword, so we'll need to
-				// handle that as a special case first for backward compatibility.
+				// However, older versions of Terraform expected the type to be
+				// a string containing a keyword, so we'll need to handle that
+				// as a special case first for backward compatibility.
 
-				var typeExpr string
+				var (typeExpr string
+				typeExprAsStr string)
 
-				var typeExprAsStr string
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &typeExprAsStr)
 				if !valDiags.HasErrors() {
 					typeExpr = typeExprAsStr
@@ -368,6 +389,7 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 
 			if attr, defined := content.Attributes["description"]; defined {
 				var description string
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &description)
 				diags = append(diags, valDiags...)
 				v.Description = description
@@ -375,32 +397,38 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 
 			if attr, defined := content.Attributes["deprecated"]; defined {
 				var deprecated string
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &deprecated)
 				diags = append(diags, valDiags...)
 				v.Deprecated = deprecated
 			}
 
 			if attr, defined := content.Attributes["default"]; defined {
-				// To avoid the caller needing to deal with cty here, we'll
-				// use its JSON encoding to convert into an
-				// approximately-equivalent plain Go interface{} value
-				// to return.
+				// To avoid the caller needing to deal with cty here, we'll use
+				// its JSON encoding to convert into an approximately-equivalent
+				// plain Go interface{} value to return.
 				val, valDiags := attr.Expr.Value(nil)
 				diags = append(diags, valDiags...)
+
 				if val.IsWhollyKnown() { // should only be false if there are errors in the input
 					valJSON, err := ctyjson.Marshal(val, val.Type())
+
 					if err != nil {
 						// Should never happen, since all possible known
 						// values have a JSON mapping.
 						panic(fmt.Errorf("failed to serialize default value as JSON: %s", err))
 					}
+
 					var def interface{}
+
 					err = json.Unmarshal(valJSON, &def)
+
 					if err != nil {
 						// Again should never happen, because valJSON is
 						// guaranteed valid by ctyjson.Marshal.
 						panic(fmt.Errorf("failed to re-parse default value from JSON: %s", err))
 					}
+
 					v.Default = def
 				}
 			} else {
@@ -409,17 +437,17 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 
 			if attr, defined := content.Attributes["sensitive"]; defined {
 				var sensitive bool
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &sensitive)
 				diags = append(diags, valDiags...)
 				v.Sensitive = sensitive
 			}
 
 		case "output":
-
 			content, _, contentDiags := block.Body.PartialContent(outputSchema)
 			diags = append(diags, contentDiags...)
-
 			name := block.Labels[0]
+
 			o := &Output{
 				Name: name,
 				Pos:  sourcePosHCL(block.DefRange),
@@ -429,6 +457,7 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 
 			if attr, defined := content.Attributes["description"]; defined {
 				var description string
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &description)
 				diags = append(diags, valDiags...)
 				o.Description = description
@@ -436,6 +465,7 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 
 			if attr, defined := content.Attributes["deprecated"]; defined {
 				var deprecated string
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &deprecated)
 				diags = append(diags, valDiags...)
 				o.Deprecated = deprecated
@@ -443,36 +473,42 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 
 			if attr, defined := content.Attributes["sensitive"]; defined {
 				var sensitive bool
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &sensitive)
 				diags = append(diags, valDiags...)
 				o.Sensitive = sensitive
 			}
 
 		case "provider":
-
 			content, _, contentDiags := block.Body.PartialContent(providerConfigSchema)
 			diags = append(diags, contentDiags...)
-
 			name := block.Labels[0]
-			// Even if there isn't an explicit version required, we still
-			// need an entry in our map to signal the unversioned dependency.
+
+			// Even if there isn't an explicit version required, we still need
+			// an entry in our map to signal the unversioned dependency.
 			if _, exists := mod.RequiredProviders[name]; !exists {
 				mod.RequiredProviders[name] = &ProviderRequirement{}
 			}
+
 			if attr, defined := content.Attributes["version"]; defined {
 				var version string
+
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &version)
 				diags = append(diags, valDiags...)
+
 				if !valDiags.HasErrors() {
 					mod.RequiredProviders[name].VersionConstraints = append(mod.RequiredProviders[name].VersionConstraints, version)
 				}
 			}
 
 			providerKey := name
+
 			var alias string
+
 			if attr, defined := content.Attributes["alias"]; defined {
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &alias)
 				diags = append(diags, valDiags...)
+
 				if !valDiags.HasErrors() && alias != "" {
 					providerKey = fmt.Sprintf("%s.%s", name, alias)
 				}
@@ -484,10 +520,8 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 			}
 
 		case "resource", "data":
-
 			content, _, contentDiags := block.Body.PartialContent(resourceSchema)
 			diags = append(diags, contentDiags...)
-
 			typeName := block.Labels[0]
 			name := block.Labels[1]
 
@@ -509,23 +543,26 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 			}
 
 			key := r.MapKey()
-
 			resourcesMap[key] = r
 
 			if attr, defined := content.Attributes["provider"]; defined {
 				// New style here is to provide this as a naked traversal
-				// expression, but we also support quoted references for
-				// older configurations that predated this convention.
+				// expression, but we also support quoted references for older
+				// configurations that predated this convention.
 				traversal, travDiags := hcl.AbsTraversalForExpr(attr.Expr)
-				if travDiags.HasErrors() {
-					traversal = nil // in case we got any partial results
 
+				if travDiags.HasErrors() {
 					// Fall back on trying to parse as a string
 					var travStr string
+
+					traversal = nil // in case we got any partial results
+
 					valDiags := gohcl.DecodeExpression(attr.Expr, nil, &travStr)
 					if !valDiags.HasErrors() {
 						var strDiags hcl.Diagnostics
+
 						traversal, strDiags = hclsyntax.ParseTraversalAbs([]byte(travStr), "", hcl.Pos{})
+
 						if strDiags.HasErrors() {
 							traversal = nil
 						}
@@ -537,11 +574,13 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 				if len(traversal) > 0 {
 					providerName := traversal.RootName()
 					alias := ""
+
 					if len(traversal) > 1 {
 						if getAttr, ok := traversal[1].(hcl.TraverseAttr); ok {
 							alias = getAttr.Name
 						}
 					}
+
 					r.Provider = ProviderRef{
 						Name:  providerName,
 						Alias: alias,
@@ -563,10 +602,8 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 			}
 
 		case "module":
-
 			content, _, contentDiags := block.Body.PartialContent(moduleCallSchema)
 			diags = append(diags, contentDiags...)
-
 			name := block.Labels[0]
 			mc := &ModuleCall{
 				Name: block.Labels[0],
@@ -575,6 +612,7 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 
 			// check if this is overriding an existing module
 			var origSource string
+
 			if origMod, exists := mod.ModuleCalls[name]; exists {
 				origSource = origMod.Source
 			}
@@ -594,8 +632,8 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 			}
 
 		default:
-			// Should never happen because our cases above should be
-			// exhaustive for our schema.
+			// Should never happen because our cases above should be exhaustive
+			// for our schema.
 			panic(fmt.Errorf("unhandled block type %q", block.Type))
 		}
 	}
@@ -619,7 +657,9 @@ func decodeModuleSourceOrVersion(attr *hcl.Attribute, file *hcl.File, diags *hcl
 	}
 
 	var value string
+
 	valDiags := gohcl.DecodeExpression(attr.Expr, nil, &value)
 	*diags = append(*diags, valDiags...)
+
 	return value
 }
