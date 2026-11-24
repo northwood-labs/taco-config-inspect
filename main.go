@@ -14,9 +14,11 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-var (showJSON = flag.Bool("json", false, "produce JSON-formatted output")
-parseStack = flag.Bool("stack", false, "parse a Terraform stack")
-parsePostInitConfiguration = flag.Bool("after-init", false, "parse a Terraform configuration after init"))
+var (
+	showJSON                   = flag.Bool("json", false, "produce JSON-formatted output")
+	parseStack                 = flag.Bool("stack", false, "parse a Terraform stack")
+	parsePostInitConfiguration = flag.Bool("after-init", false, "parse a Terraform configuration after init")
+)
 
 func main() {
 	flag.Parse()
