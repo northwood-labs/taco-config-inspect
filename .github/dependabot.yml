@@ -1,3 +1,4 @@
+---
 version: 2
 
 updates:
@@ -10,6 +11,8 @@ updates:
       - security
     # Disable regular version updates and only use Dependabot for security updates
     open-pull-requests-limit: 0
+    cooldown:
+      default-days: 7
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -28,3 +31,5 @@ updates:
         update-types:
           - minor
           - patch
+    cooldown:
+      default-days: 7
