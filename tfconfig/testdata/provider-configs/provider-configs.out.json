@@ -1,39 +1,43 @@
 {
-    "path": "testdata/provider-configs",
-    "required_providers": {
-        "foo": {},
-        "bar": {
-            "version_constraints": [
-                "1.0.0",
-                "1.1.0"
-            ]
-        },
-        "baz": {
-            "version_constraints": [
-                "2.0.0"
-            ]
-        }
+  "data_resources": {},
+  "managed_resources": {
+    "bar_bar.bar": {
+      "mode": "managed",
+      "name": "bar",
+      "pos": {
+        "filename": "testdata/provider-configs/provider-configs.tf",
+        "line": 10
+      },
+      "provider": {
+        "name": "bar"
+      },
+      "type": "bar_bar"
+    }
+  },
+  "module_calls": {},
+  "outputs": {},
+  "path": "testdata/provider-configs",
+  "provider_configs": {
+    "bar": {
+      "name": "bar"
     },
-    "variables": {},
-    "outputs": {},
-    "provider_configs": {
-        "foo": {"name": "foo"},
-        "bar": {"name": "bar"}
+    "foo": {
+      "name": "foo"
+    }
+  },
+  "required_providers": {
+    "bar": {
+      "version_constraints": [
+        "1.0.0",
+        "1.1.0"
+      ]
     },
-    "managed_resources": {
-        "bar_bar.bar": {
-            "mode": "managed",
-            "type": "bar_bar",
-            "name": "bar",
-            "provider": {
-                "name": "bar"
-            },
-            "pos": {
-                "filename": "testdata/provider-configs/provider-configs.tf",
-                "line": 10
-            }
-        }
+    "baz": {
+      "version_constraints": [
+        "2.0.0"
+      ]
     },
-    "data_resources": {},
-    "module_calls": {}
+    "foo": {}
+  },
+  "variables": {}
 }

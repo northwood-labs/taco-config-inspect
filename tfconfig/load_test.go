@@ -15,7 +15,7 @@ import (
 )
 
 // testLoadHelper is the common testing logic for loading functions
-func testLoadHelper(t *testing.T, fixturesDir string, loadFunc func(string) interface{}) {
+func testLoadHelper(t *testing.T, fixturesDir string, loadFunc func(string) any) {
 	testDirs, err := ioutil.ReadDir(fixturesDir)
 	if err != nil {
 		t.Fatal(err)
@@ -30,12 +30,12 @@ func testLoadHelper(t *testing.T, fixturesDir string, loadFunc func(string) inte
 			name := info.Name()
 			path := filepath.Join(fixturesDir, name)
 
-			wantSrc, err := ioutil.ReadFile(filepath.Join(path, name+".out.json"))
+			wantSrc, err := os.ReadFile(filepath.Join(path, name+".out.json"))
 			if err != nil {
 				t.Fatalf("failed to read result file: %s", err)
 			}
 
-			var want map[string]interface{}
+			var want map[string]any
 			err = json.Unmarshal(wantSrc, &want)
 			if err != nil {
 				t.Fatalf("failed to parse result file: %s", err)
@@ -51,7 +51,7 @@ func testLoadHelper(t *testing.T, fixturesDir string, loadFunc func(string) inte
 				t.Fatalf("result is not JSON-able: %s", err)
 			}
 
-			var got map[string]interface{}
+			var got map[string]any
 			err = json.Unmarshal(gotSrc, &got)
 			if err != nil {
 				t.Fatalf("failed to parse the actual result (!?): %s", err)
@@ -65,7 +65,7 @@ func testLoadHelper(t *testing.T, fixturesDir string, loadFunc func(string) inte
 }
 
 func TestLoadModule(t *testing.T) {
-	testLoadHelper(t, "testdata", func(path string) interface{} {
+	testLoadHelper(t, "testdata", func(path string) any {
 		module, _ := LoadModule(path)
 
 		return module
@@ -73,7 +73,7 @@ func TestLoadModule(t *testing.T) {
 }
 
 func TestLoadModuleFromFilesystem(t *testing.T) {
-	testLoadHelper(t, "testdata", func(path string) interface{} {
+	testLoadHelper(t, "testdata", func(path string) any {
 		fs := os.DirFS(".")
 		module, _ := LoadModuleFromFilesystem(WrapFS(fs), path)
 
@@ -82,7 +82,7 @@ func TestLoadModuleFromFilesystem(t *testing.T) {
 }
 
 func TestLoadStack(t *testing.T) {
-	testLoadHelper(t, "testdata-stack", func(path string) interface{} {
+	testLoadHelper(t, "testdata-stack", func(path string) any {
 		stack, _ := LoadStack(path)
 
 		return stack

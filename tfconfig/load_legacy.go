@@ -5,6 +5,8 @@
 package tfconfig
 
 import (
+	"maps"
+	"slices"
 	"strings"
 
 	legacyhcl "github.com/hashicorp/hcl"
@@ -52,9 +54,9 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 			}
 
 			type TerraformBlock struct {
-				RequiredVersion   string      `hcl:"required_version"`
-				RequiredProviders interface{} `hcl:"required_providers"`
-				Fields            []string    `hcl:",decodedFields"`
+				RequiredVersion   string   `hcl:"required_version"`
+				RequiredProviders any      `hcl:"required_providers"`
+				Fields            []string `hcl:",decodedFields"`
 			}
 
 			var block TerraformBlock
@@ -64,10 +66,8 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 				return nil, diagnosticsErrorf("terraform block: %s", err)
 			}
 
-			for _, field := range block.Fields {
-				if field == "RequiredProviders" {
-					return nil, diagnosticsErrorf("terraform.required_providers must not exist")
-				}
+			if slices.Contains(block.Fields, "RequiredProviders") {
+				return nil, diagnosticsErrorf("terraform.required_providers must not exist")
 			}
 
 			if block.RequiredVersion != "" {
@@ -80,7 +80,7 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 
 			type VariableBlock struct {
 				Type        string `hcl:"type"`
-				Default     interface{}
+				Default     any
 				Description string
 				Fields      []string `hcl:",decodedFields"`
 			}
@@ -102,13 +102,11 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 				}
 
 				// Clean up legacy HCL decoding ambiguity by unwrapping list of maps
-				if ms, ok := block.Default.([]map[string]interface{}); ok {
-					def := make(map[string]interface{})
+				if ms, ok := block.Default.([]map[string]any); ok {
+					def := make(map[string]any)
 
 					for _, m := range ms {
-						for k, v := range m {
-							def[k] = v
-						}
+						maps.Copy(def, m)
 					}
 
 					block.Default = def
@@ -188,8 +186,10 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 					typeName := item.Keys[0].Token.Value().(string)
 					name := item.Keys[1].Token.Value().(string)
 
-					var (mode ResourceMode
-					rMap map[string]*Resource)
+					var (
+						mode ResourceMode
+						rMap map[string]*Resource
+					)
 
 					switch blockType {
 					case "resource":
@@ -238,7 +238,6 @@ func loadModuleLegacyHCL(fs FS, dir string) (*Module, Diagnostics) {
 					rMap[key] = r
 				}
 			}
-
 		}
 
 		if moduleCalls := list.Filter("module"); len(moduleCalls.Items) > 0 {

@@ -13,38 +13,38 @@ import (
 
 type (
 
-// FS is an interface used by [LoadModuleFromFilesystem].
-//
-// Unfortunately this package implemented a draft version of the io/fs.FS API
-// before it was finalized and so this interface is not compatible with the
-// final design. To use this package with the final filesystem API design, use
-// [WrapFS] to wrap a standard filesystem implementation so that it implements
-// this interface.
-FS interface {
-	Open(name string) (File, error)
-	ReadFile(name string) ([]byte, error)
-	ReadDir(dirname string) ([]os.FileInfo, error)
-}
+	// FS is an interface used by [LoadModuleFromFilesystem].
+	//
+	// Unfortunately this package implemented a draft version of the io/fs.FS API
+	// before it was finalized and so this interface is not compatible with the
+	// final design. To use this package with the final filesystem API design, use
+	// [WrapFS] to wrap a standard filesystem implementation so that it implements
+	// this interface.
+	FS interface {
+		Open(name string) (File, error)
+		ReadFile(name string) ([]byte, error)
+		ReadDir(dirname string) ([]os.FileInfo, error)
+	}
 
-// File represents an open file in [FS].
-File interface {
-	Stat() (os.FileInfo, error)
-	Read([]byte) (int, error)
-	Close() error
-}
+	// File represents an open file in [FS].
+	File interface {
+		Stat() (os.FileInfo, error)
+		Read([]byte) (int, error)
+		Close() error
+	}
 
-// wrapFS is a rather regrettable adapter from the standard library filesystem
-// interfaces to the one we have designed in this package, since we adopted a
-// draft of that API before it was finalized and the final is incompatible.
-wrapFS struct {
-	wrapped fs.FS
-}
+	// wrapFS is a rather regrettable adapter from the standard library filesystem
+	// interfaces to the one we have designed in this package, since we adopted a
+	// draft of that API before it was finalized and the final is incompatible.
+	wrapFS struct {
+		wrapped fs.FS
+	}
 
-wrapFileInfoDirEntry struct {
-	wrapped fs.DirEntry
-}
+	wrapFileInfoDirEntry struct {
+		wrapped fs.DirEntry
+	}
 
-osFs struct{}
+	osFs struct{}
 )
 
 // WrapFS wraps a standard library filesystem implementation so that it
@@ -108,7 +108,7 @@ func (fs *osFs) Open(name string) (File, error) {
 }
 
 func (fs *osFs) ReadFile(name string) ([]byte, error) {
-	return ioutil.ReadFile(name)
+	return os.ReadFile(name)
 }
 
 func (fs *osFs) ReadDir(dirname string) ([]os.FileInfo, error) {

@@ -15,13 +15,10 @@ type (
 	// Diagnostic describes a problem (error or warning) encountered during
 	// configuration loading.
 	Diagnostic struct {
-		Severity DiagSeverity `json:"severity"`
+		Pos      *SourcePos   `json:"pos,omitempty"`
 		Summary  string       `json:"summary"`
 		Detail   string       `json:"detail,omitempty"`
-
-		// Pos is not populated for all diagnostics, but when populated should
-		// indicate a particular line that the described problem relates to.
-		Pos *SourcePos `json:"pos,omitempty"`
+		Severity DiagSeverity `json:"severity"`
 	}
 
 	// Diagnostics represents a sequence of diagnostics. This is the type that
@@ -147,6 +144,6 @@ func diagnosticsError(err error) Diagnostics {
 	}
 }
 
-func diagnosticsErrorf(format string, args ...interface{}) Diagnostics {
+func diagnosticsErrorf(format string, args ...any) Diagnostics {
 	return diagnosticsError(fmt.Errorf(format, args...))
 }

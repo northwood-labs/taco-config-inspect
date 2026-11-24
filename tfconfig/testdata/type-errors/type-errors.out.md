@@ -2,19 +2,24 @@
 # Module `testdata/type-errors`
 
 Provider Requirements:
+
 * **:** (any version)
 * **foo:** (any version)
 
-## Input Variables
+## Input variables
+
 * `foo` (required)
 
-## Output Values
+## Output values
+
 * `foo`
 
-## Managed Resources
+## Managed resources
+
 * `foo.foo` from ``
 
-## Child Modules
+## Child modules
+
 * `foo` from ``
 
 ## Problems
@@ -72,4 +77,3 @@ Unsuitable value: string required
 (at `testdata/type-errors/type-errors.tf` line 27)
 
 Required providers entries must be strings or objects.
-

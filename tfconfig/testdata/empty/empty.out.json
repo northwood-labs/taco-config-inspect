@@ -1,12 +1,9 @@
 {
-    "path": "testdata/empty",
-
-    "required_providers": {},
-
-    "variables": {},
-    "outputs": {},
-
-    "managed_resources": {},
-    "data_resources": {},
-    "module_calls": {}
+  "data_resources": {},
+  "managed_resources": {},
+  "module_calls": {},
+  "outputs": {},
+  "path": "testdata/empty",
+  "required_providers": {},
+  "variables": {}
 }

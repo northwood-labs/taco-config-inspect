@@ -17,7 +17,7 @@ type (
 	// It represents the contents of a "provider" argument in a resource, or
 	// a value in the "providers" map for a module call.
 	ProviderRef struct {
-		Name  string `json:"name"`
+		Name string `json:"name"`
 
 		// Empty if the default provider configuration is referenced
 		Alias string `json:"alias,omitempty"`

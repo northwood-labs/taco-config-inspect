@@ -23,8 +23,10 @@ func loadModule(fs FS, dir string) (*Module, Diagnostics) {
 	parser := hclparse.NewParser()
 
 	for _, filename := range primaryPaths {
-		var (file *hcl.File
-		fileDiags hcl.Diagnostics)
+		var (
+			file      *hcl.File
+			fileDiags hcl.Diagnostics
+		)
 
 		b, err := fs.ReadFile(filename)
 		if err != nil {
@@ -62,8 +64,10 @@ func LoadStack(dir string) (*Stack, Diagnostics) {
 
 	primaryPaths, diags := dirFiles(fs, dir)
 	for _, filename := range primaryPaths {
-		var (file *hcl.File
-		fileDiags hcl.Diagnostics)
+		var (
+			file      *hcl.File
+			fileDiags hcl.Diagnostics
+		)
 
 		b, err := fs.ReadFile(filename)
 		if err != nil {
@@ -111,8 +115,10 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 			stack.Variables[name] = v
 
 			if attr, defined := content.Attributes["type"]; defined {
-				var (typeExpr string
-				typeExprAsStr string)
+				var (
+					typeExpr      string
+					typeExprAsStr string
+				)
 
 				// Older versions of HCL expected the type to be a string
 				// containing a keyword, so we'll need to handle that as a
@@ -153,7 +159,7 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 						panic(fmt.Errorf("failed to serialize default value as JSON: %s", err))
 					}
 
-					var def interface{}
+					var def any
 
 					err = json.Unmarshal(valJSON, &def)
 					if err != nil {
@@ -188,8 +194,10 @@ func loadStackFromFile(file *hcl.File, stack *Stack) hcl.Diagnostics {
 			}
 
 			if attr, defined := content.Attributes["type"]; defined {
-				var (typeExpr string
-				typeExprAsStr string)
+				var (
+					typeExpr      string
+					typeExprAsStr string
+				)
 
 				// Older versions of HCL expected the type to be a string
 				// containing a keyword, so we'll need to handle that as a
@@ -373,8 +381,10 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 				// a string containing a keyword, so we'll need to handle that
 				// as a special case first for backward compatibility.
 
-				var (typeExpr string
-				typeExprAsStr string)
+				var (
+					typeExpr      string
+					typeExprAsStr string
+				)
 
 				valDiags := gohcl.DecodeExpression(attr.Expr, nil, &typeExprAsStr)
 				if !valDiags.HasErrors() {
@@ -412,17 +422,15 @@ func LoadModuleFromFile(file *hcl.File, mod *Module) hcl.Diagnostics {
 
 				if val.IsWhollyKnown() { // should only be false if there are errors in the input
 					valJSON, err := ctyjson.Marshal(val, val.Type())
-
 					if err != nil {
 						// Should never happen, since all possible known
 						// values have a JSON mapping.
 						panic(fmt.Errorf("failed to serialize default value as JSON: %s", err))
 					}
 
-					var def interface{}
+					var def any
 
 					err = json.Unmarshal(valJSON, &def)
-
 					if err != nil {
 						// Again should never happen, because valJSON is
 						// guaranteed valid by ctyjson.Marshal.

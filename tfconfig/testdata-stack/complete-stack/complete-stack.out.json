@@ -1,97 +1,97 @@
 {
-    "path": "testdata-stack/complete-stack",
-    "required_providers": {
-        "archive": {
-            "source": "hashicorp/archive"
-        },
-        "aws": {
-            "source": "hashicorp/aws"
-        },
-        "local": {
-            "source": "hashicorp/local"
-        },
-        "random": {
-            "source": "hashicorp/random"
-        }
+  "components": {
+    "api_gateway": {
+      "name": "api_gateway",
+      "pos": {
+        "filename": "testdata-stack/complete-stack/components.tfcomponent.hcl",
+        "line": 37
+      },
+      "source": "./api-gateway"
     },
-    "variables": {
-        "default_tags": {
-            "name": "default_tags",
-            "type": "map(string)",
-            "description": "A map of default tags to apply to all AWS resources",
-            "default": {},
-            "required": false,
-            "pos": {
-                "filename": "testdata-stack/complete-stack/variables.tfstack.hcl",
-                "line": 17
-            }
-        },
-        "identity_token": {
-            "name": "identity_token",
-            "type": "string",
-            "default": null,
-            "required": true,
-            "pos": {
-                "filename": "testdata-stack/complete-stack/variables.tfstack.hcl",
-                "line": 8
-            }
-        },
-        "regions": {
-            "name": "regions",
-            "type": "set(string)",
-            "default": null,
-            "required": true,
-            "pos": {
-                "filename": "testdata-stack/complete-stack/variables.tfstack.hcl",
-                "line": 4
-            }
-        },
-        "role_arn": {
-            "name": "role_arn",
-            "type": "string",
-            "default": null,
-            "required": true,
-            "pos": {
-                "filename": "testdata-stack/complete-stack/variables.tfstack.hcl",
-                "line": 13
-            }
-        }
+    "lambda": {
+      "name": "lambda",
+      "pos": {
+        "filename": "testdata-stack/complete-stack/components.tfcomponent.hcl",
+        "line": 19
+      },
+      "source": "./lambda"
     },
-    "outputs": {
-        "lambda_urls": {
-            "name": "lambda_urls",
-            "type": "list(string)",
-            "description": "URLs to invoke lambda functions",
-            "pos": {
-                "filename": "testdata-stack/complete-stack/outputs.tfcomponent.hcl",
-                "line": 1
-            }
-        }
-    },
-    "components": {
-        "api_gateway": {
-            "name": "api_gateway",
-            "source": "./api-gateway",
-            "pos": {
-                "filename": "testdata-stack/complete-stack/components.tfcomponent.hcl",
-                "line": 37
-            }
-        },
-        "lambda": {
-            "name": "lambda",
-            "source": "./lambda",
-            "pos": {
-                "filename": "testdata-stack/complete-stack/components.tfcomponent.hcl",
-                "line": 19
-            }
-        },
-        "s3": {
-            "name": "s3",
-            "source": "./s3",
-            "pos": {
-                "filename": "testdata-stack/complete-stack/components.tfcomponent.hcl",
-                "line": 4
-            }
-        }
+    "s3": {
+      "name": "s3",
+      "pos": {
+        "filename": "testdata-stack/complete-stack/components.tfcomponent.hcl",
+        "line": 4
+      },
+      "source": "./s3"
     }
+  },
+  "outputs": {
+    "lambda_urls": {
+      "description": "URLs to invoke lambda functions",
+      "name": "lambda_urls",
+      "pos": {
+        "filename": "testdata-stack/complete-stack/outputs.tfcomponent.hcl",
+        "line": 1
+      },
+      "type": "list(string)"
+    }
+  },
+  "path": "testdata-stack/complete-stack",
+  "required_providers": {
+    "archive": {
+      "source": "hashicorp/archive"
+    },
+    "aws": {
+      "source": "hashicorp/aws"
+    },
+    "local": {
+      "source": "hashicorp/local"
+    },
+    "random": {
+      "source": "hashicorp/random"
+    }
+  },
+  "variables": {
+    "default_tags": {
+      "default": {},
+      "description": "A map of default tags to apply to all AWS resources",
+      "name": "default_tags",
+      "pos": {
+        "filename": "testdata-stack/complete-stack/variables.tfstack.hcl",
+        "line": 17
+      },
+      "required": false,
+      "type": "map(string)"
+    },
+    "identity_token": {
+      "default": null,
+      "name": "identity_token",
+      "pos": {
+        "filename": "testdata-stack/complete-stack/variables.tfstack.hcl",
+        "line": 8
+      },
+      "required": true,
+      "type": "string"
+    },
+    "regions": {
+      "default": null,
+      "name": "regions",
+      "pos": {
+        "filename": "testdata-stack/complete-stack/variables.tfstack.hcl",
+        "line": 4
+      },
+      "required": true,
+      "type": "set(string)"
+    },
+    "role_arn": {
+      "default": null,
+      "name": "role_arn",
+      "pos": {
+        "filename": "testdata-stack/complete-stack/variables.tfstack.hcl",
+        "line": 13
+      },
+      "required": true,
+      "type": "string"
+    }
+  }
 }

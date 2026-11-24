@@ -10,20 +10,20 @@ import (
 	"strings"
 )
 
-const (InvalidResourceMode ResourceMode = 0
-ManagedResourceMode ResourceMode = 'M'
-DataResourceMode ResourceMode = 'D')
+const (
+	InvalidResourceMode ResourceMode = 0
+	ManagedResourceMode ResourceMode = 'M'
+	DataResourceMode    ResourceMode = 'D'
+)
 
 type (
 	// Resource represents a single "resource" or "data" block within a module.
 	Resource struct {
-		Mode ResourceMode `json:"mode"`
-		Type string       `json:"type"`
-		Name string       `json:"name"`
-
-		Provider ProviderRef `json:"provider"`
-
-		Pos SourcePos `json:"pos"`
+		Provider ProviderRef  `json:"provider"`
+		Type     string       `json:"type"`
+		Name     string       `json:"name"`
+		Pos      SourcePos    `json:"pos"`
+		Mode     ResourceMode `json:"mode"`
 	}
 
 	// ResourceMode represents the "mode" of a resource, which is used to
@@ -63,8 +63,8 @@ func (m ResourceMode) MarshalJSON() ([]byte, error) {
 }
 
 func resourceTypeDefaultProviderName(typeName string) string {
-	if underPos := strings.IndexByte(typeName, '_'); underPos != -1 {
-		return typeName[:underPos]
+	if before, _, ok := strings.Cut(typeName, "_"); ok {
+		return before
 	}
 
 	return typeName

@@ -7,6 +7,7 @@ package tfconfig
 import (
 	"bytes"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -31,7 +32,7 @@ func TestRenderMarkdown(t *testing.T) {
 			path := filepath.Join(fixturesDir, name)
 			fullPath := filepath.Join(path, name+".out.md")
 
-			expected, err := ioutil.ReadFile(fullPath)
+			expected, err := os.ReadFile(fullPath)
 			if err != nil {
 				t.Skipf("%q not found, skipping test", fullPath)
 			}

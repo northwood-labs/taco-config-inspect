@@ -134,7 +134,7 @@ func loadTFDataDir(fs FS, dataDir string, cfg *Configuration) {
 		return
 	}
 
-	var cachedModules = modulesRootSchema{}
+	cachedModules := modulesRootSchema{}
 
 	if err = json.Unmarshal(content, &cachedModules); err != nil {
 		cfg.Diagnostics = append(cfg.Diagnostics, Diagnostic{

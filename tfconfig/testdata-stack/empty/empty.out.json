@@ -1,7 +1,7 @@
 {
-    "path": "testdata-stack/empty",
-    "required_providers": {},
-    "variables": {},
-    "outputs": {},
-    "components": {}
+  "components": {},
+  "outputs": {},
+  "path": "testdata-stack/empty",
+  "required_providers": {},
+  "variables": {}
 }

@@ -90,7 +90,7 @@ func RenderMarkdown(w io.Writer, module *Module) error {
 		"commas": func(s []string) string {
 			return strings.Join(s, ", ")
 		},
-		"json": func(v interface{}) (string, error) {
+		"json": func(v any) (string, error) {
 			j, err := json.Marshal(v)
 			return string(j), err
 		},

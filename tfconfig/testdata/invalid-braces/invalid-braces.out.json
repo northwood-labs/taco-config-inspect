@@ -1,19 +1,19 @@
 {
-    "path": "testdata/invalid-braces",
-    "variables": {
-        "foo": {
-            "name": "foo",
-            "default": "123",
-            "required": false,
-            "pos": {
-                "filename": "testdata/invalid-braces/invalid-braces.tf",
-                "line": 5
-            }
-        }
-    },
-    "outputs": {},
-    "required_providers": {},
-    "managed_resources": {},
-    "data_resources": {},
-    "module_calls": {}
+  "data_resources": {},
+  "managed_resources": {},
+  "module_calls": {},
+  "outputs": {},
+  "path": "testdata/invalid-braces",
+  "required_providers": {},
+  "variables": {
+    "foo": {
+      "default": "123",
+      "name": "foo",
+      "pos": {
+        "filename": "testdata/invalid-braces/invalid-braces.tf",
+        "line": 5
+      },
+      "required": false
+    }
+  }
 }

@@ -12,14 +12,14 @@ type (
 		// from.
 		Path string `json:"path"`
 
-		Variables map[string]*Variable `json:"variables"`
-		Outputs   map[string]*Output   `json:"outputs"`
+		Variables         map[string]*Variable            `json:"variables"`
+		Outputs           map[string]*Output              `json:"outputs"`
 		RequiredCore      []string                        `json:"required_core,omitempty"`
 		RequiredProviders map[string]*ProviderRequirement `json:"required_providers"`
-		ProviderConfigs  map[string]*ProviderConfig `json:"provider_configs,omitempty"`
-		ManagedResources map[string]*Resource       `json:"managed_resources"`
-		DataResources    map[string]*Resource       `json:"data_resources"`
-		ModuleCalls      map[string]*ModuleCall     `json:"module_calls"`
+		ProviderConfigs   map[string]*ProviderConfig      `json:"provider_configs,omitempty"`
+		ManagedResources  map[string]*Resource            `json:"managed_resources"`
+		DataResources     map[string]*Resource            `json:"data_resources"`
+		ModuleCalls       map[string]*ModuleCall          `json:"module_calls"`
 
 		// Diagnostics records any errors and warnings that were detected during
 		// loading, primarily for inclusion in serialized forms of the module

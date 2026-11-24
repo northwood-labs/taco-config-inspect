@@ -10,8 +10,8 @@ type Stack struct {
 	// Path is the local filesystem directory where the stack was loaded from.
 	Path string `json:"path"`
 
-	Variables map[string]*Variable `json:"variables"`
-	Outputs   map[string]*Output   `json:"outputs"`
+	Variables         map[string]*Variable            `json:"variables"`
+	Outputs           map[string]*Output              `json:"outputs"`
 	RequiredProviders map[string]*ProviderRequirement `json:"required_providers"`
 	Components        map[string]*Component           `json:"components"`
 

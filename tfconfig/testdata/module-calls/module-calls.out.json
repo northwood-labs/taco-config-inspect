@@ -1,38 +1,35 @@
 {
-    "path": "testdata/module-calls",
-
-    "required_providers": {},
-
-    "variables": {},
-    "outputs": {},
-
-    "managed_resources": {},
-    "data_resources": {},
-    "module_calls": {
-        "foo": {
-            "name": "foo",
-            "source": "foo/bar/baz",
-            "version": "1.0.2",
-            "pos": {
-                "filename": "testdata/module-calls/module-calls.tf",
-                "line": 1
-            }
-        },
-        "bar": {
-            "name": "bar",
-            "source": "./child",
-            "pos": {
-                "filename": "testdata/module-calls/module-calls.tf",
-                "line": 8
-            }
-        },
-        "baz": {
-            "name": "baz",
-            "source": "../elsewhere",
-            "pos": {
-                "filename": "testdata/module-calls/module-calls.tf.json",
-                "line": 3
-            }
-        }
+  "data_resources": {},
+  "managed_resources": {},
+  "module_calls": {
+    "bar": {
+      "name": "bar",
+      "pos": {
+        "filename": "testdata/module-calls/module-calls.tf",
+        "line": 8
+      },
+      "source": "./child"
+    },
+    "baz": {
+      "name": "baz",
+      "pos": {
+        "filename": "testdata/module-calls/module-calls.tf.json",
+        "line": 3
+      },
+      "source": "../elsewhere"
+    },
+    "foo": {
+      "name": "foo",
+      "pos": {
+        "filename": "testdata/module-calls/module-calls.tf",
+        "line": 1
+      },
+      "source": "foo/bar/baz",
+      "version": "1.0.2"
     }
+  },
+  "outputs": {},
+  "path": "testdata/module-calls",
+  "required_providers": {},
+  "variables": {}
 }

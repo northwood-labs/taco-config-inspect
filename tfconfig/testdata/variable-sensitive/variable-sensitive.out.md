@@ -2,12 +2,14 @@
 # Module `testdata/variable-sensitive`
 
 Provider Requirements:
+
 * **null:** (any version)
 
-## Input Variables
+## Input variables
+
 * `A` (default `"A default"`)
 * `B` (default `"B default"`)
 
-## Managed Resources
-* `null_resource.A` from `null`
+## Managed resources
 
+* `null_resource.A` from `null`

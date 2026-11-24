@@ -1,7 +1,8 @@
 
 # Module `testdata/variable-types`
 
-## Input Variables
+## Input variables
+
 * `bool_default_false` (default `false`)
 * `list` (required)
 * `list_default_empty` (default `[]`)
@@ -12,4 +13,3 @@
 * `primitive` (required)
 * `string_default_empty` (default `""`)
 * `string_default_null` (default `null`)
-

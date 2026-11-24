@@ -1,37 +1,37 @@
 {
-    "path": "testdata/data-resources",
-    "required_providers": {
-        "external": {},
-        "notexternal": {}
+  "data_resources": {
+    "data.external.bar": {
+      "mode": "data",
+      "name": "bar",
+      "pos": {
+        "filename": "testdata/data-resources/data-resources.tf",
+        "line": 4
+      },
+      "provider": {
+        "name": "notexternal"
+      },
+      "type": "external"
     },
-    "variables": {},
-    "outputs": {},
-    "managed_resources": {},
-    "data_resources": {
-        "data.external.foo": {
-            "mode": "data",
-            "type": "external",
-            "name": "foo",
-            "provider": {
-                "name": "external"
-            },
-            "pos": {
-                "filename": "testdata/data-resources/data-resources.tf",
-                "line": 1
-            }
-        },
-        "data.external.bar": {
-            "mode": "data",
-            "type": "external",
-            "name": "bar",
-            "provider": {
-                "name": "notexternal"
-            },
-            "pos": {
-                "filename": "testdata/data-resources/data-resources.tf",
-                "line": 4
-            }
-        }
-    },
-    "module_calls": {}
+    "data.external.foo": {
+      "mode": "data",
+      "name": "foo",
+      "pos": {
+        "filename": "testdata/data-resources/data-resources.tf",
+        "line": 1
+      },
+      "provider": {
+        "name": "external"
+      },
+      "type": "external"
+    }
+  },
+  "managed_resources": {},
+  "module_calls": {},
+  "outputs": {},
+  "path": "testdata/data-resources",
+  "required_providers": {
+    "external": {},
+    "notexternal": {}
+  },
+  "variables": {}
 }

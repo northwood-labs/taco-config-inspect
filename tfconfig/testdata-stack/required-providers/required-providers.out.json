@@ -1,20 +1,20 @@
 {
-    "path": "testdata-stack/required-providers",
-    "required_providers": {
-        "google": {
-            "source": "hashicorp/google"
-        },
-        "http": {
-            "source": "hashicorp/http"
-        },
-        "random": {
-            "source": "hashicorp/random"
-        },
-        "null": {
-            "source": "hashicorp/null"
-        }
+  "components": {},
+  "outputs": {},
+  "path": "testdata-stack/required-providers",
+  "required_providers": {
+    "google": {
+      "source": "hashicorp/google"
     },
-    "variables": {},
-    "outputs": {},
-    "components": {}
+    "http": {
+      "source": "hashicorp/http"
+    },
+    "null": {
+      "source": "hashicorp/null"
+    },
+    "random": {
+      "source": "hashicorp/random"
+    }
+  },
+  "variables": {}
 }

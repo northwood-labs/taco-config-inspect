@@ -1,6 +1,6 @@
 
 # Module `testdata/invalid-braces`
 
-## Input Variables
-* `foo` (default `"123"`)
+## Input variables
 
+* `foo` (default `"123"`)
